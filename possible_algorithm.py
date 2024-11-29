@@ -14,8 +14,9 @@ RSSI_AT_ONE = 50  # RSSI value at 1 meter
 PATH_LOSS_EXP = 2  # Path loss exponent
 DISTANCE_LIMIT = 5  # Maximum distance to consider a device in range (meters)
 DISTANCE_TOLERANCE = 0.2  # Tolerance for grouping devices as one person
-TIMEOUT_SECONDS = 10  # Time to scan for devices
-SCAN_INTERVAL = 5  # Interval between scans
+TIMEOUT_SECONDS = 5 # Time to scan for devices
+SCAN_INTERVAL = 1  # Interval between scans
+MIN_NON_ZERO_RSSI = 5  # Minimum non-zero RSSI values required for grouping
 
 nest_asyncio.apply()
 
@@ -72,7 +73,8 @@ def estimate_users_from_history():
     """Estimates users in the same vicinity using the RSSI history."""
     distances = []
     for address, rssi_values in rssi_history.items():
-        if rssi_values.count(0) < 2:  # Ignore devices with frequent absences
+        non_zero_count = sum(1 for rssi in rssi_values if rssi != 0)
+        if non_zero_count >= MIN_NON_ZERO_RSSI:  # Only consider devices with sufficient non-zero RSSI values
             avg_rssi = sum(rssi_values) / len(rssi_values)
             distance = calculate_distance(avg_rssi)
             if distance is not None and distance < DISTANCE_LIMIT:
