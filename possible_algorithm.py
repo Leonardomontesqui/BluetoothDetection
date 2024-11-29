@@ -14,7 +14,7 @@ RSSI_AT_ONE = 50  # RSSI value at 1 meter
 PATH_LOSS_EXP = 2  # Path loss exponent
 DISTANCE_LIMIT = 5  # Maximum distance to consider a device in range (meters)
 DISTANCE_TOLERANCE = 0.2  # Tolerance for grouping devices as one person
-TIMEOUT_SECONDS = 5 # Time to scan for devices
+TIMEOUT_SECONDS = 10 # Time to scan for devices
 SCAN_INTERVAL = 1  # Interval between scans
 MIN_NON_ZERO_RSSI = 5  # Minimum non-zero RSSI values required for grouping
 
