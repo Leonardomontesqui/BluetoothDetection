@@ -4,6 +4,11 @@ from bleak import BleakScanner
 from datetime import datetime
 from mac_vendor_lookup import MacLookup
 import nest_asyncio
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+load_dotenv('.env.local') #L
+supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY")) #L
 
 """ 
 NEED TO INSTALL REQUIREMENTS BEFORE RUNNING
@@ -15,6 +20,7 @@ PATH_LOSS_EXP = 2  # CONS2T
 DISTANCE_LIMIT = 5  # Proximity
 DISTANCE_TOLERANCE = 0.2 # Tolerance for grouping as one person
 TIMEOUT_SECONDS = 10 # Model refreshes per second
+SCAN_INTERVAL = 2 # //LEO here, time between scans
 
 nest_asyncio.apply()
 
@@ -27,6 +33,21 @@ except Exception as e:
 
 # HashMap to store RSSI history
 rssi_history = {}
+
+def insertCustomerRow(newCount):
+    """
+    Insert a new row into the customersRealTime table with the current people count.
+    
+    :param newCount: Number of estimated people
+    """
+    try:
+        response = (supabase.table("customersRealTime")).insert({
+            "restaurant": "Timmies", 
+            "count": newCount, 
+        }).execute()
+        print(f"Inserted count {newCount} into database")
+    except Exception as e:
+        print(f"Error updating database: {e}")
 
 def calculate_distance(rssi, rssi_at_1m=-RSSI_AT_ONE, path_loss_exponent=PATH_LOSS_EXP):
     """Calculates distance based on RSSI. Received Signal Strength Indicator"""
@@ -87,6 +108,7 @@ async def count_devices():
         # Count people based on device grouping
         people_count = group_devices_by_proximity(distances)
         print(f"\nEstimated number of people: {people_count}")
+        insertCustomerRow(people_count) # Leo here again
 
         #print_rssi_history()
 
@@ -97,7 +119,7 @@ async def continuous_count():
     try:
         while True:
             await count_devices()
-            await asyncio.sleep(2)
+            await asyncio.sleep(SCAN_INTERVAL)
     except KeyboardInterrupt:
         print("\nStopped scanning")
 
