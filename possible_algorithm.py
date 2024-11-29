@@ -12,7 +12,7 @@ load_dotenv('.env.local')  # Load environment variables
 # Constants
 RSSI_AT_ONE = 50  # RSSI value at 1 meter
 PATH_LOSS_EXP = 2  # Path loss exponent
-DISTANCE_LIMIT = 5  # Maximum distance to consider a device in range (meters)
+DISTANCE_LIMIT = 20  # Maximum distance to consider a device in range (meters)
 DISTANCE_TOLERANCE = 0.2  # Tolerance for grouping devices as one person
 TIMEOUT_SECONDS = 10  # Time to scan for devices
 SCAN_INTERVAL = 1  # Interval between scans
@@ -40,10 +40,16 @@ def calculate_distance(rssi, rssi_at_1m=-RSSI_AT_ONE, path_loss_exponent=PATH_LO
         return None
 
 def update_rssi_history(address, rssi):
-    """Updates the RSSI history for a given device and computes the average RSSI."""
+    """Updates the RSSI history for a given device and computes the average RSSI.
+       If the list exceeds length 10, it pops the first element."""
     if address not in rssi_history:
         rssi_history[address] = []
     rssi_history[address].append(rssi)
+    
+    # Ensure the list doesn't exceed length 10 by popping the first element
+    if len(rssi_history[address]) > 10:
+        rssi_history[address].pop(0)
+        
     return sum(rssi_history[address]) / len(rssi_history[address])
 
 def mark_missing_devices(active_devices):
