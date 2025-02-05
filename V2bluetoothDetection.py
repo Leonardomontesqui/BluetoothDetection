@@ -8,11 +8,11 @@ import os
 load_dotenv('.env.local')
 
 # Configurable Parameters
-MAX_DISTANCE = 2  # Maximum distance to consider devices (in meters)
+MAX_DISTANCE = 8  # Maximum distance to consider devices (in meters)
 SAME_DISTANCE_THRESHOLD = 0.2  # Threshold to consider devices in the same distance group
-SCAN_INTERVAL = 20  # Time between scans in seconds
+SCAN_INTERVAL = 10  # Time between scans in seconds
 RSSI_AT_1M = -50  # Expected RSSI value at 1 meter
-PATH_LOSS_EXPONENT = 2.5  # Path loss exponent 
+PATH_LOSS_EXPONENT = 2  # Path loss exponent 
 
 # Supabase initialization
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY"))
@@ -43,7 +43,7 @@ def calculate_distance(rssi, rssi_at_1m=RSSI_AT_1M, path_loss_exponent=PATH_LOSS
     """
     try:
         # Calculate distance using the Log-Distance Path Loss Model
-        distance = 10 ** ((rssi_at_1m - rssi) / (10 * path_loss_exponent)) # Changed 15 to 10
+        distance = 10 ** ((rssi_at_1m - rssi) / (15 * path_loss_exponent))
         return distance
     except Exception as e:
         print(f"Error calculating distance: {e}")
@@ -74,9 +74,12 @@ async def count_devices(max_distance=MAX_DISTANCE, same_distance_threshold=SAME_
         
         # Group devices by similar distances
         distance_groups = {}
+        device_distances = {}  # Store individual device distances
+        
         for device in devices:
             distance = calculate_distance(device.rssi)
             if distance and distance <= max_distance:
+                device_distances[device] = distance  # Store the distance for later use
                 # Find or create a distance group
                 matched_group = False
                 for group_key in distance_groups:
@@ -99,9 +102,9 @@ async def count_devices(max_distance=MAX_DISTANCE, same_distance_threshold=SAME_
             print(f"  - {len(group_devices)} devices")
             print(f"  - Estimated {people_estimate} people")
             
-            # Optional: print device details
+            # Print device details including individual distances
             for device in group_devices:
-                print(f"    * Device: {device.name or 'Unknown'}, Address: {device.address}, RSSI: {device.rssi} dBm")
+                print(f"    * Device: {device.name or 'Unknown'}, Address: {device.address}, RSSI: {device.rssi} dBm, Distance: {device_distances[device]:.2f}m")
         
         print(f"\nTotal estimated people: {total_estimated_people}")
         
