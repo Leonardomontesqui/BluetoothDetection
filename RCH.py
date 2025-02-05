@@ -8,9 +8,9 @@ import os
 load_dotenv('.env.local')
 
 # Configurable Parameters
-MAX_DISTANCE = 8  # Maximum distance to consider devices (in meters)
+MAX_DISTANCE = 5  # Maximum distance to consider devices (in meters)
 SAME_DISTANCE_THRESHOLD = 0.2  # Threshold to consider devices in the same distance group
-SCAN_INTERVAL = 10  # Time between scans in seconds
+SCAN_INTERVAL = 2  # Time between scans in seconds
 RSSI_AT_1M = -50  # Expected RSSI value at 1 meter
 PATH_LOSS_EXPONENT = 2  # Path loss exponent 
 
@@ -25,7 +25,7 @@ def insertCustomerRow(newCount):
     """
     try:
         response = (supabase.table("customersRealTime")).insert({
-            "restaurant": "Timmies", 
+            "restaurant": "RCH", 
             "count": newCount, 
         }).execute()
         print(f"Inserted count {newCount} into database")
@@ -56,10 +56,10 @@ def estimate_people(device_count):
     :param device_count: Number of devices in a distance group
     :return: Estimated number of people
     """
-    if device_count <= 5:
+    if device_count <= 4:
         return 1
     else:
-        return 1 + (device_count // 5)
+        return 1 + (device_count // 4)
 
 async def count_devices(max_distance=MAX_DISTANCE, same_distance_threshold=SAME_DISTANCE_THRESHOLD):
     """

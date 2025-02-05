@@ -8,11 +8,11 @@ import os
 load_dotenv('.env.local')
 
 # Configurable Parameters
-MAX_DISTANCE = 8  # Maximum distance to consider devices (in meters)
+MAX_DISTANCE = 2  # Maximum distance to consider devices (in meters)
 SAME_DISTANCE_THRESHOLD = 0.2  # Threshold to consider devices in the same distance group
-SCAN_INTERVAL = 10  # Time between scans in seconds
+SCAN_INTERVAL = 20  # Time between scans in seconds
 RSSI_AT_1M = -50  # Expected RSSI value at 1 meter
-PATH_LOSS_EXPONENT = 2  # Path loss exponent 
+PATH_LOSS_EXPONENT = 2.5  # Path loss exponent 
 
 # Supabase initialization
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY"))
@@ -43,7 +43,7 @@ def calculate_distance(rssi, rssi_at_1m=RSSI_AT_1M, path_loss_exponent=PATH_LOSS
     """
     try:
         # Calculate distance using the Log-Distance Path Loss Model
-        distance = 10 ** ((rssi_at_1m - rssi) / (15 * path_loss_exponent))
+        distance = 10 ** ((rssi_at_1m - rssi) / (10 * path_loss_exponent)) # Changed 15 to 10
         return distance
     except Exception as e:
         print(f"Error calculating distance: {e}")
